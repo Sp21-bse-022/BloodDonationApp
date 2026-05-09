@@ -1,0 +1,51 @@
+@model DonationHistory
+@{
+    ViewData["Title"] = "Record Donation";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-heart-pulse me-2"></i>Record a Donation</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="DonationDate" class="form-label fw-semibold"></label>
+                            <input asp-for="DonationDate" class="form-control" type="date"
+                                   max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="DonationDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Hospital" class="form-label fw-semibold"></label>
+                            <input asp-for="Hospital" class="form-control" placeholder="Hospital name" />
+                            <span asp-validation-for="Hospital" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="3"
+                                      placeholder="Optional notes..."></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-check-circle me-1"></i>Save
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

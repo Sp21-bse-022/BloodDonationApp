@@ -1,0 +1,138 @@
+@model IEnumerable<BloodDonationApp.Models.BloodRequest>
+@{
+    ViewData["Title"] = "Manage Blood Requests";
+    var bloodGroups = new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
+    string selStatus = ViewBag.Status ?? "";
+    string selBg     = ViewBag.BloodGroup ?? "";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clipboard2-pulse-fill text-danger me-2"></i>Manage Blood Requests</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Dashboard
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        @foreach (var s in Enum.GetNames<BloodDonationApp.Models.RequestStatus>())
+                        {
+                            <option value="@s" selected="@(selStatus == s ? "selected" : null)">@s</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Blood Group</label>
+                    <select name="bloodGroup" class="form-select">
+                        <option value="">All</option>
+                        @foreach (var bg in bloodGroups)
+                        {
+                            <option value="@bg" selected="@(selBg == bg ? "selected" : null)">@bg</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-search me-1"></i>Filter
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a asp-action="Requests" class="btn btn-outline-secondary w-100">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-table me-2"></i>Requests
+                <span class="badge bg-light text-danger ms-2">@Model.Count()</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Blood Group</th>
+                            <th>Hospital</th>
+                            <th>City</th>
+                            <th>Units</th>
+                            <th>Urgency</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Posted By</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.PatientName</td>
+                                <td><span class="badge bg-danger">@r.BloodGroup</span></td>
+                                <td>@r.Hospital</td>
+                                <td>@r.City</td>
+                                <td class="text-center">@r.UnitsNeeded</td>
+                                <td>
+                                    <span class="@(r.UrgencyLevel == BloodDonationApp.Models.UrgencyLevel.Critical ? "text-danger fw-bold" :
+                                                   r.UrgencyLevel == BloodDonationApp.Models.UrgencyLevel.Urgent ? "text-warning fw-bold" : "text-success")">
+                                        @r.UrgencyLevel
+                                    </span>
+                                </td>
+                                <td class="small">@r.ContactNumber</td>
+                                <td>
+                                    <!-- Inline status change -->
+                                    <form asp-action="UpdateRequestStatus" method="post" class="d-flex gap-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <select name="status" class="form-select form-select-sm" style="width:110px;">
+                                            @foreach (var s in Enum.GetValues<BloodDonationApp.Models.RequestStatus>())
+                                            {
+                                                <option value="@s" selected="@(r.Status == s ? "selected" : null)">@s</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Save status">
+                                            <i class="bi bi-check"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="small">@(r.User?.FullName ?? "—")</td>
+                                <td class="small">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <form asp-action="DeleteRequest" asp-route-id="@r.Id" method="post"
+                                          onsubmit="return confirm('Delete this request?')">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

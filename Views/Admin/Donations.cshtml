@@ -1,0 +1,84 @@
+@model IEnumerable<BloodDonationApp.Models.DonationHistory>
+@{
+    ViewData["Title"] = "Manage Donations";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-heart-pulse-fill text-success me-2"></i>Manage Donations</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Dashboard
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-table me-2"></i>All Donation Records
+                <span class="badge bg-light text-success ms-2">@Model.Count()</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <p class="text-muted p-4 mb-0">No donation records found.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Donor</th>
+                                <th>Email</th>
+                                <th>Blood Group</th>
+                                <th>Donation Date</th>
+                                <th>Hospital</th>
+                                <th>Notes</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int i = 1; }
+                            @foreach (var d in Model)
+                            {
+                                <tr>
+                                    <td>@i++</td>
+                                    <td class="fw-semibold">@(d.Donor?.FullName ?? "—")</td>
+                                    <td class="text-muted small">@(d.Donor?.Email ?? "—")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(d.Donor?.BloodGroup))
+                                        { <span class="badge bg-danger">@d.Donor.BloodGroup</span> }
+                                        else { <span class="text-muted">—</span> }
+                                    </td>
+                                    <td>@d.DonationDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@d.Hospital</td>
+                                    <td class="text-muted small">@(d.Notes ?? "—")</td>
+                                    <td>
+                                        <form asp-action="DeleteDonation" asp-route-id="@d.Id" method="post"
+                                              onsubmit="return confirm('Delete this donation record?')">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

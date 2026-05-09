@@ -1,0 +1,130 @@
+@model IEnumerable<BloodRequest>
+@{
+    ViewData["Title"] = "Blood Requests";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-list-ul text-danger me-2"></i>Blood Requests</h2>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-action="Create" class="btn btn-danger">
+                <i class="bi bi-plus-circle me-1"></i>New Request
+            </a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filter Form -->
+    @{
+        string selectedBg = ViewBag.BloodGroup ?? "";
+        string selectedCity = ViewBag.City ?? "";
+        string selectedUrgency = ViewBag.Urgency ?? "";
+        var bloodGroups = new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
+        var urgencies = new[] { "Critical", "Urgent", "Normal" };
+    }
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Blood Group</label>
+                    <select name="bloodGroup" class="form-select">
+                        <option value="">All</option>
+                        @foreach (var bg in bloodGroups)
+                        {
+                            <option value="@bg" selected="@(selectedBg == bg ? "selected" : null)">@bg</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">City</label>
+                    <input type="text" name="city" class="form-control"
+                           value="@selectedCity" placeholder="Search city..." />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Urgency</label>
+                    <select name="urgency" class="form-select">
+                        <option value="">All</option>
+                        @foreach (var u in urgencies)
+                        {
+                            <option value="@u" selected="@(selectedUrgency == u ? "selected" : null)">@u</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-search me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3 text-muted">No blood requests found</h4>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var request in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card stat-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">@request.PatientName</h5>
+                                <span class="badge bg-danger fs-6">@request.BloodGroup</span>
+                            </div>
+                            <p class="mb-1"><i class="bi bi-hospital me-2 text-muted"></i>@request.Hospital</p>
+                            <p class="mb-1"><i class="bi bi-geo-alt me-2 text-muted"></i>@request.City</p>
+                            <p class="mb-1"><i class="bi bi-droplet me-2 text-muted"></i>@request.UnitsNeeded units</p>
+                            <p class="mb-1"><i class="bi bi-telephone me-2 text-muted"></i>@request.ContactNumber</p>
+                            <p class="mb-3">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <span class="@(request.UrgencyLevel == UrgencyLevel.Critical ? "urgency-critical" :
+                                               request.UrgencyLevel == UrgencyLevel.Urgent ? "urgency-urgent" : "urgency-normal")">
+                                    @request.UrgencyLevel
+                                </span>
+                            </p>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Details" asp-route-id="@request.Id"
+                                   class="btn btn-outline-danger btn-sm flex-grow-1">
+                                    <i class="bi bi-info-circle me-1"></i>Details
+                                </a>
+                                @if (User.Identity?.IsAuthenticated == true &&
+                                     User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == request.UserId)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@request.Id"
+                                       class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@request.Id" method="post"
+                                          onsubmit="return confirm('Delete this request?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <i class="bi bi-clock me-1"></i>@request.CreatedAt.ToString("MMM dd, yyyy")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
